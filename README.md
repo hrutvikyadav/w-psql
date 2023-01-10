@@ -76,6 +76,12 @@
     database_name=> CREATE TABLE table_name();
     ```
 
+    To create table and add column in same command, use `CREATE TABLE table_name(column_name DATATYPE CONSTRAINTS);`
+
+    ```psql
+    CREATE TABLE sounds(sound_id SERIAL PRIMARY KEY);
+    ```
+
 6. ALTER TABLE ADD COLUMN
 
     Add column to the table by giving the `column_name`, `table_name`, and `DATATYPE`
@@ -96,7 +102,7 @@
     database_name=> ALTER TABLE table_name DROP COLUMN column_name;
     ```
 
-8. ALTER TABLE RENAME COLUMN
+8. ALTER TABLE RENAME COLUMN TO
 
     Rename a column
 
@@ -129,6 +135,9 @@
     ```psql
     SELECT * FROM second_table;
     ```
+
+    > View mulltiple/ single columns by providing __comma separated column names__\
+    > `SELECT name, id FROM characters`
 
     Use `clauses` to modify how data is displayed. For example, use ORDER_BY to change the order or records
 
@@ -182,7 +191,79 @@
     > Primary key is set for each table and there can be only one per table
 
     ```psql
-    ALTER TABLE characters ADD PRIMARY KEY(name);
+    ALTER TABLE characters ADD PRIMARY KEY(character_id);
+    ```
+
+    > Add a composite primary key generated from 2 columns with\
+    > `ALTER TABLE table_name ADD PRIMARY KEY(column1, column2);`\
+    > Useful for __junction_tables__
+
+17. ALTER TABLE DROP CONSTRAINT
+
+    Remove a constraint by running `ALTER TABLE table_name DROP CONSTRAINT constraint_name;`
+    > Use \d table_name to view esisting constraints i.e constraint_names specified as string
+
+    ```psql
+    ALTER TABLE characters DROP CONSTRAINT characters_pkey;
+    ```
+
+18. ALTER TABLE ADD UNIQUE
+
+    Add unique constraint to enforce __one-to-one relationship to tables__
+    > i.e _one_ row in table A will be related to _one_ row in table B\
+    > Usually add the unique constraint to references column
+    `ALTER TABLE table_name ADD UNIQUE(column_name);`
+
+    ```psql
+    ALTER TABLE more_info ADD UNIQUE(character_id);
+    ```
+
+19. ALTER TABLE ADD COLUMN REFERENCES
+
+    Add a _foreign key_ to relate _records in a table_, with _records[^1] in **another table**_\
+    by creating a column that exists in another table-\
+    `ALTER TABLE table_name ADD COLUMN column_name DATATYPE REFERENCES referenced_table_name(referenced_column_name);`
+
+    ```psql
+    ALTER TABLE more_info ADD COLUMN character_id INT REFERENCES characters(character_id);
+    ```
+
+20. ALTER TABLE ALTER COLUMN SET NOT NULL
+
+    Add `NOT NULL` constraint on existing column with `ALTER TABLE table_name ALTER COLUMN column_name SET NOT NULL;`
+    > To add constraint when adding new column, check command #6
+
+    ```psql
+    ALTER TABLE more_info ALTER COLUMN character_id SET NOT NULL;
+    ```
+
+21. ALTER TABLE ADD FOREIGN KEY REFERENCES
+
+    Add foreign key to existing columns with `ALTER TABLE table_name ADD FOREIGN KEY(column_name) REFERENCES referenced_table(referenced_column);`
+
+    ```psql
+    ALTER TABLE character_actions ADD FOREIGN KEY(character_id) REFERENCES characters(character_id);
+    ```
+
+22. SELECT FROM FULL JOIN ON
+
+    When two tables are linked with _foreign keys_, we can use __join__ to view all data from both tables using\
+    `SELECT column_name FROM table_1_name FULL JOIN table_2_name ON table_1.primary_key_column_name = table_2.foreign_key_column_name;`
+
+    ```psql
+    SELECT * FROM characters FULL JOIN more_info ON characters.character_id = more_info.character_id;
+    ```
+
+    > Use consequent `FULL JOIN`'s to view more tables together using\
+    `SELECT columns FROM junction_table
+    FULL JOIN table_1 ON junction_table.foreign_key_column = table_1.primary_key_column
+    FULL JOIN table_2 ON junction_table.foreign_key_column = table_2.primary_key_column;`
+    [^junction-tables]
+
+    ```psql
+    SELECT * FROM character_actions
+    FULL JOIN characters ON character_actions.character_id = characters.character_id
+    FULL JOIN actions ON character_actions.action_id = actions.action_id;
     ```
 
 ## Data Types
@@ -197,5 +278,29 @@
   Special type that makes a _column of type INT_ with _NOT NULL constraint_,\
   and __auto increment__ the INT upon addition of new rows
 
+- DATE
+- NUMERIC(x, y)
+
+  This datatype is for decimals. x is the number of digits and y is number of digits to the right of decimal point
+
+## Types of relations
+
+- Table
+
+- Sequence
+
+  Automatically generated for _columns_ with data type _SERIAL_
+
+## IMP- Relations between TABLES
+
+- one to one relationship - add foreign key to tables with UNIQUE constraint
+- one to many relationshhip - add foreign key without UNIQUE constraint
+- many to many relationship - use a third _junction table_ to link the two tables
+
 [^datatypes]: [enter-correct]
+
+[^1]: [usually-primary-key-of-another-table]
+
+[^junction-tables]: [these-are-used-to-describe-many-to-many-relations-between-2-tables..they-only-consisit-of-foreign-key-columns-for-linked-tables--and-composite-primary-key-which-is-a-combination-of-the-existing-foreign-keys]
+
 [enter-correct-datatypes...(those which column accepts. check \d tablename and refer type id unsure)]
